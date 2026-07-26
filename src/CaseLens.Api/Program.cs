@@ -1,4 +1,5 @@
 using CaseLens.Api.Data;
+using CaseLens.Api.Services.Answers;
 using CaseLens.Api.Services.Embeddings;
 using CaseLens.Api.Services.Ingestion;
 using CaseLens.Api.Services.Retrieval;
@@ -55,6 +56,25 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IRetrievalService,
     CosineSimilarityRetrievalService>();
+
+builder.Services.Configure<OpenAiAnswerOptions>(
+    builder.Configuration.GetSection(OpenAiAnswerOptions.SectionName));
+
+builder.Services.Configure<QuestionAnswerOptions>(
+    builder.Configuration.GetSection(QuestionAnswerOptions.SectionName));
+
+builder.Services.AddSingleton<IAnswerPromptBuilder, AnswerPromptBuilder>();
+
+builder.Services.AddHttpClient<
+    IAnswerGenerationService,
+    OpenAiAnswerGenerationService>(httpClient =>
+    {
+        httpClient.BaseAddress = new Uri("https://api.openai.com/v1/");
+    });
+
+builder.Services.AddScoped<
+    IQuestionAnswerService,
+    QuestionAnswerService>();
 
 builder.Services.AddScoped<
     IRetrievalEvaluator,

@@ -156,3 +156,56 @@ three results for all three questions:
 - vehicle search incident to arrest -> `556 U. S. 332 (2009)`.
 
 The evaluation process exits with code `1` if any case misses.
+
+## Assignment 6 Patch
+
+Assignment 6 adds the grounded question-answering vertical slice:
+
+- stable `POST /api/questions` request and response DTOs;
+- an `IAnswerGenerationService` provider boundary and OpenAI adapter;
+- a prompt builder that exposes only retrieved evidence;
+- application-controlled `C1` through `Cn` evidence identifiers;
+- structured answer output with answer text, evidence IDs, and refusal state;
+- application-side removal of unknown and duplicate citation IDs;
+- mapping of validated IDs to chunk, document, citation, page, passage, and score;
+- conservative refusal when retrieval is below threshold, the model refuses, or
+  no valid citation remains;
+- generic `502` handling for provider failures without returning provider bodies,
+  API keys, or exception details;
+- focused tests for supported answers, unsupported questions, invalid citations,
+  and prompt constraints.
+
+### Secrets
+
+```powershell
+dotnet user-secrets set "OpenAI:Answers:ApiKey" "<your-api-key>" --project src/CaseLens.Api
+```
+
+### Verification
+
+```powershell
+dotnet build CaseLensMini.slnx
+dotnet test tests/CaseLens.Api.Tests/CaseLens.Api.Tests.csproj
+dotnet run --project src/CaseLens.Api
+```
+
+Then call `POST /api/questions` with:
+
+- supported: `When may police stop and frisk a person based on reasonable suspicion?`
+- unsupported: `How should I draft my apartment lease?`
+
+The supported response must contain at least one source whose `evidenceId` maps
+to a retrieved chunk. The unsupported response must set `insufficientEvidence`
+to `true` and return no sources.
+
+### Blocker
+
+The isolated workspace could not resolve GitHub or run the repository locally,
+so build, test, PostgreSQL, and live provider verification remain required on
+the development machine. The similarity threshold is intentionally configurable
+and should be tuned only from the Assignment 8 evaluation set.
+
+### Next Exact Step
+
+Apply this patch, run the checks and two endpoint probes above, then proceed to
+Assignment 7's one-page Angular UI without changing the backend architecture.
