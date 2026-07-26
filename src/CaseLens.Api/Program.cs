@@ -1,4 +1,5 @@
 using CaseLens.Api.Data;
+using CaseLens.Api.Services.Embeddings;
 using CaseLens.Api.Services.Ingestion;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,6 +31,22 @@ builder.Services.AddScoped<
     IDocumentIngestionService,
     DocumentIngestionService>();
 
+builder.Services.Configure<OpenAiEmbeddingOptions>(
+    builder.Configuration.GetSection(
+        OpenAiEmbeddingOptions.SectionName));
+
+builder.Services.AddHttpClient<
+    IEmbeddingGenerator,
+    OpenAiEmbeddingGenerator>(httpClient =>
+    {
+        httpClient.BaseAddress =
+            new Uri("https://api.openai.com/v1/");
+    });
+
+builder.Services.AddScoped<
+    IChunkEmbeddingBackfillService,
+    ChunkEmbeddingBackfillService>();
+
 var app = builder.Build();
 
 if (args.Contains("--ingest", StringComparer.OrdinalIgnoreCase))
@@ -44,8 +61,6 @@ if (args.Contains("--ingest", StringComparer.OrdinalIgnoreCase))
         AppContext.BaseDirectory,
         "Data",
         "Opinions");
-
-    Console.WriteLine("HEre: " + opinionsDirectory);
 
     var opinionSources = new[]
     {
@@ -77,6 +92,19 @@ if (args.Contains("--ingest", StringComparer.OrdinalIgnoreCase))
             $"{result.ChunkCount} chunks, " +
             $"skipped={result.WasSkipped}");
     }
+
+    var embeddingBackfillService =
+        scope.ServiceProvider.GetRequiredService<
+            IChunkEmbeddingBackfillService>();
+
+    var embeddingResult =
+        await embeddingBackfillService.PopulateMissingAsync();
+
+    Console.WriteLine(
+        $"Embeddings: {embeddingResult.TotalChunkCount} chunks, " +
+        $"{embeddingResult.GeneratedEmbeddingCount} generated, " +
+        $"{embeddingResult.ExistingEmbeddingCount} already present, " +
+        $"{embeddingResult.Dimensions} dimensions.");
 
     return;
 }
