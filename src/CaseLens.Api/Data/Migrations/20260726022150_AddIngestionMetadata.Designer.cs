@@ -3,6 +3,7 @@ using System;
 using CaseLens.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CaseLens.Api.Data.Migrations
 {
     [DbContext(typeof(CaseLensDbContext))]
-    partial class CaseLensDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260726022150_AddIngestionMetadata")]
+    partial class AddIngestionMetadata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,6 +48,7 @@ namespace CaseLens.Api.Data.Migrations
                         .HasColumnName("created_at");
 
                     b.PrimitiveCollection<float[]>("Embedding")
+                        .IsRequired()
                         .HasColumnType("real[]")
                         .HasColumnName("embedding");
 

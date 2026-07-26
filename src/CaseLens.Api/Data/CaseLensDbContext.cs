@@ -17,9 +17,11 @@ public sealed class CaseLensDbContext : DbContext
     public DbSet<DocumentChunk> DocumentChunks =>
         Set<DocumentChunk>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.ApplyConfigurationsFromAssembly(
-            typeof(CaseLensDbContext).Assembly);
-    }
+   protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+
+    modelBuilder.ApplyConfigurationsFromAssembly(
+        typeof(CaseLensDbContext).Assembly);
+}
 }

@@ -18,11 +18,11 @@
     <PackageReference Include="PdfPig" Version="0.1.15" />
   </ItemGroup>
   
-  <ItemGroup>
-  <Content Include="..\data\opinions\**\*.pdf">
-    <Link>data\opinions\%(RecursiveDir)%(Filename)%(Extension)</Link>
+<ItemGroup>
+  <None Update="Data\Opinions\**\*.pdf">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-  </Content>
+    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+  </None>
 </ItemGroup>
 
 </Project>

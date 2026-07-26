@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
+namespace CaseLens.Api.Data.Configurations;
+
 public sealed class LegalDocumentConfiguration
     : IEntityTypeConfiguration<LegalDocument>
 {
@@ -19,9 +21,14 @@ public sealed class LegalDocumentConfiguration
             .HasMaxLength(500)
             .IsRequired();
 
+        builder.Property(document => document.Citation)
+            .HasColumnName("citation")
+            .HasMaxLength(250)
+            .IsRequired();
+
         builder.Property(document => document.SourceFileName)
             .HasColumnName("source_file_name")
-            .HasMaxLength(255)
+            .HasMaxLength(500)
             .IsRequired();
 
         builder.Property(document => document.ContentHash)
@@ -34,8 +41,13 @@ public sealed class LegalDocumentConfiguration
             .IsRequired();
 
         builder.Property(document => document.ImportedAt)
-            .HasColumnName("ingested_at")
+            .HasColumnName("imported_at")
             .IsRequired();
+
+        builder.HasMany(document => document.Chunks)
+            .WithOne(chunk => chunk.LegalDocument)
+            .HasForeignKey(chunk => chunk.LegalDocumentId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(document => document.SourceFileName)
             .IsUnique();

@@ -35,8 +35,7 @@ public sealed class DocumentChunkConfiguration
 
         builder.Property(chunk => chunk.Embedding)
             .HasColumnName("embedding")
-            .HasColumnType("real[]")
-            .IsRequired();
+            .HasColumnType("real[]");
 
         builder.Property(chunk => chunk.CreatedAt)
             .HasColumnName("created_at")
