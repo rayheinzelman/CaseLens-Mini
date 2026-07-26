@@ -209,3 +209,41 @@ and should be tuned only from the Assignment 8 evaluation set.
 
 Apply this patch, run the checks and two endpoint probes above, then proceed to
 Assignment 7's one-page Angular UI without changing the backend architecture.
+
+## Assignment 7 Patch
+
+Assignment 7 adds the minimal Angular demonstration page:
+
+- a clear CaseLens header and research-only / no-legal-advice notice;
+- the fixed list of three indexed opinions;
+- an accessible question form with disabled, loading, and safe error states;
+- distinct supported-answer and insufficient-evidence presentations;
+- expandable validated source cards with evidence ID, opinion, citation, page,
+  chunk metadata, similarity score, and passage;
+- typed Angular models matching the existing `POST /api/questions` contract;
+- a focused question API service and local development proxy;
+- client tests for the supported, unsupported, transport-error, and request paths.
+
+No backend architecture, database schema, upload flow, Docker, pgvector, or UI
+component library was added.
+
+### Verification
+
+```powershell
+cd src/caselens-client
+npm ci
+npm test -- --run
+npm run build
+npm start
+```
+
+With PostgreSQL and the API running, verify:
+
+- supported: `When may police stop and frisk a person based on reasonable suspicion?`
+- unsupported: `How should I draft my apartment lease?`
+
+The supported path must show an answer and at least one expandable validated
+source. The unsupported path must show the insufficient-evidence response and
+no invented legal guidance.
+
+### Blocker

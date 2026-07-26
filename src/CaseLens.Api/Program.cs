@@ -110,7 +110,12 @@ if (args.Contains("--ingest", StringComparer.OrdinalIgnoreCase))
         new OpinionSource(
             Path.Combine(opinionsDirectory, "terryvohio.pdf"),
             "TERRY v. OHIO.",
-            "392 U.S. 1 (1968)")
+            "392 U.S. 1 (1968)"),
+
+        new OpinionSource(
+            Path.Combine(opinionsDirectory, "mirandavarizona.pdf"),
+            "MIRANDA v. ARIZONA",
+            "384 U.S. 436 (1966)")
     };
 
     foreach (var source in opinionSources.OrderBy(

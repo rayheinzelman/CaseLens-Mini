@@ -1,0 +1,38 @@
+<header class="site-header">
+  <div><p class="eyebrow">Legal RAG demonstration</p><h1>CaseLens</h1></div>
+  <p class="disclaimer">Research demonstration only. CaseLens answers only from the indexed opinions and does not provide legal advice.</p>
+</header>
+<main>
+  <section class="collection-card" aria-labelledby="collection-title">
+    <div><p class="section-label">Indexed collection</p><h2 id="collection-title">Three Supreme Court opinions</h2></div>
+    <ul>@for (opinion of indexedOpinions; track opinion) { <li>{{ opinion }}</li> }</ul>
+  </section>
+  <section class="question-card" aria-labelledby="question-title">
+    <p class="section-label">Ask the collection</p><h2 id="question-title">What do these opinions support?</h2>
+    <p>CaseLens will decline questions that the indexed evidence cannot answer.</p>
+    <form (ngSubmit)="ask()">
+      <label for="question">Question</label>
+      <textarea id="question" name="question" [(ngModel)]="question" [disabled]="loading()" required maxlength="1000" placeholder="When may police stop and frisk a person based on reasonable suspicion?"></textarea>
+      <div class="form-actions"><span>{{ question.length }} / 1000</span><button type="submit" [disabled]="loading() || !question.trim()">{{ loading() ? 'Reviewing evidence…' : 'Ask CaseLens' }}</button></div>
+    </form>
+  </section>
+  @if (loading()) { <section class="status-card" aria-live="polite"><div class="spinner" aria-hidden="true"></div><div><h2>Reviewing evidence</h2><p>Retrieving relevant passages and validating citations.</p></div></section> }
+  @if (errorMessage()) { <section class="status-card error" role="alert"><div><h2>Question unavailable</h2><p>{{ errorMessage() }}</p></div></section> }
+  @if (response(); as result) {
+    <article class="answer-card" aria-live="polite">
+      <p class="result-badge" [class.refusal]="result.insufficientEvidence">{{ result.insufficientEvidence ? 'Insufficient evidence' : 'Evidence-supported response' }}</p>
+      <h2>{{ result.insufficientEvidence ? 'CaseLens declined to answer' : 'Answer' }}</h2>
+      <p class="answer-text">{{ result.answer }}</p>
+      @if (!result.insufficientEvidence && result.sources.length) {
+        <section class="sources" aria-labelledby="sources-title"><h3 id="sources-title">Validated sources</h3>
+          @for (source of result.sources; track source.evidenceId) {
+            <details><summary><span><strong>{{ source.documentTitle }}</strong><small>{{ source.citation }} · page {{ source.pageNumber }}</small></span><span class="score">{{ source.similarityScore | percent:'1.0-0' }} match</span></summary>
+              <div class="source-body"><p class="source-id">{{ source.evidenceId }} · chunk {{ source.chunkId }} (index {{ source.chunkIndex }})</p><blockquote>{{ source.passage }}</blockquote></div>
+            </details>
+          }
+        </section>
+      } @else if (result.insufficientEvidence) { <p class="result-note">Try asking about stop-and-frisk, excessive force during arrest, or vehicle searches incident to arrest.</p> }
+    </article>
+  }
+</main>
+<footer>CaseLens uses a fixed, local collection. Verify every source passage before relying on the response.</footer>
