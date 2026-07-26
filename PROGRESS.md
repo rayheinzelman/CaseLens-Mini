@@ -124,3 +124,35 @@ equal `1536`.
 - In-process cosine similarity
 - C# backend and Angular UI
 - No Docker, pgvector, Python, agents, auth, OCR, or cloud deployment
+
+## Assignment 5 Patch
+
+Assignment 5 adds:
+
+- an EF Core query that loads embedded chunks with document metadata;
+- in-process cosine-similarity ranking;
+- request/response DTOs;
+- a development-only `POST /api/development/retrieval` endpoint;
+- unit tests for cosine math, validation, ordering, and three known questions;
+- a real-corpus `--evaluate-retrieval` command.
+
+No chat-completion model, pgvector, Docker, or new database schema is used.
+
+Apply and verify locally:
+
+```powershell
+git apply --check CaseLens-Assignment-5.patch
+git apply CaseLens-Assignment-5.patch
+dotnet build CaseLensMini.slnx
+dotnet test tests/CaseLens.Api.Tests/CaseLens.Api.Tests.csproj
+dotnet run --project src/CaseLens.Api -- --evaluate-retrieval
+```
+
+The evaluation succeeds only when the expected opinion appears in the top
+three results for all three questions:
+
+- stop and frisk / reasonable suspicion -> `392 U.S. 1 (1968)`;
+- excessive force during arrest -> `490 U.S. 386 (1989)`;
+- vehicle search incident to arrest -> `556 U. S. 332 (2009)`.
+
+The evaluation process exits with code `1` if any case misses.

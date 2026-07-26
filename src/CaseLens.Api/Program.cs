@@ -1,6 +1,7 @@
 using CaseLens.Api.Data;
 using CaseLens.Api.Services.Embeddings;
 using CaseLens.Api.Services.Ingestion;
+using CaseLens.Api.Services.Retrieval;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,6 +47,18 @@ builder.Services.AddHttpClient<
 builder.Services.AddScoped<
     IChunkEmbeddingBackfillService,
     ChunkEmbeddingBackfillService>();
+
+builder.Services.AddScoped<
+    IRetrievalCandidateStore,
+    EfRetrievalCandidateStore>();
+
+builder.Services.AddScoped<
+    IRetrievalService,
+    CosineSimilarityRetrievalService>();
+
+builder.Services.AddScoped<
+    IRetrievalEvaluator,
+    RetrievalEvaluator>();
 
 var app = builder.Build();
 
@@ -106,6 +119,32 @@ if (args.Contains("--ingest", StringComparer.OrdinalIgnoreCase))
         $"{embeddingResult.ExistingEmbeddingCount} already present, " +
         $"{embeddingResult.Dimensions} dimensions.");
 
+    return;
+}
+
+if (args.Contains(
+        "--evaluate-retrieval",
+        StringComparer.OrdinalIgnoreCase))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+
+    var evaluator = scope.ServiceProvider
+        .GetRequiredService<IRetrievalEvaluator>();
+
+    var report = await evaluator.EvaluateAsync();
+
+    foreach (var result in report.Results)
+    {
+        Console.WriteLine(
+            $"[{(result.Passed ? "PASS" : "FAIL")}] " +
+            $"{result.Question}");
+        Console.WriteLine(
+            $"  Expected: {result.ExpectedCitation}");
+        Console.WriteLine(
+            $"  Retrieved: {string.Join(", ", result.RetrievedCitations)}");
+    }
+
+    Environment.ExitCode = report.Passed ? 0 : 1;
     return;
 }
 
