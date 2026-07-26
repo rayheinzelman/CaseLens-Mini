@@ -16,7 +16,7 @@ public sealed class PostgresDatabaseFixture : IAsyncLifetime
 
         _connectionString =
             configuration.GetConnectionString(
-                "CaseLensTestDatabase")
+                "CaseLensMiniTestDatabase")
             ?? throw new InvalidOperationException(
                 "The test connection string " +
                 "'ConnectionStrings:CaseLensTestDatabase' " +

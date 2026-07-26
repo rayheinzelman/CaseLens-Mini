@@ -12,7 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var connectionString =
-    builder.Configuration.GetConnectionString("CaseLensDatabase")
+    builder.Configuration.GetConnectionString("CaseLensMiniDatabase")
     ?? throw new InvalidOperationException(
         "Connection string 'CaseLensDatabase' was not found.");
 
