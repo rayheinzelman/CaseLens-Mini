@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/Docs/">
+    <File Path="Examples.txt" />
+    <File Path="MyNotes.md" />
+    <File Path="Presentation.md" />
+    <File Path="readme.md" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/CaseLens.Api/CaseLens.Api.csproj" />
   </Folder>

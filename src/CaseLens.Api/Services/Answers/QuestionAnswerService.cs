@@ -54,16 +54,22 @@ public sealed class QuestionAnswerService : IQuestionAnswerService
             return Refusal();
         }
 
+        // Create a dictionary for quick lookup of evidence supplied TO the answer generation service
+        // This ensures that we only return sources that were actually used in generating the answer
         var evidenceById = evidence.ToDictionary(
             item => item.EvidenceId,
             StringComparer.Ordinal);
 
+        // Remove duplicates
+        // Remove IDs we never supplied
+        // Convert valid IDs into source responses
         var validatedSources = generated.CitedEvidenceIds
             .Distinct(StringComparer.Ordinal)
             .Where(evidenceById.ContainsKey)
             .Select(id => MapSource(evidenceById[id]))
             .ToArray();
 
+        // Reject answer if there are no valid sources to cite
         if (validatedSources.Length == 0)
         {
             return Refusal();

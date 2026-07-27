@@ -20,6 +20,7 @@ public sealed class ChunkEmbeddingBackfillService
         _embeddingGenerator = embeddingGenerator;
     }
 
+    // Look through our current database, find any document chunks that are missing embeddings, and generate them.
     public async Task<EmbeddingBackfillResult> PopulateMissingAsync(
         CancellationToken cancellationToken = default)
     {
@@ -41,6 +42,7 @@ public sealed class ChunkEmbeddingBackfillService
 
         var generatedEmbeddingCount = 0;
 
+        // We generate embeddings in batches to avoid overwhelming the embedding generator and to improve performance.
         foreach (var batch in missingChunks.Chunk(BatchSize))
         {
             var inputs = batch
