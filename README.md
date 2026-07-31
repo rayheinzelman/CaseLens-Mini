@@ -1,0 +1,1 @@
+CaseLens Mini is small RAG system capable of answering user questions against a set of predefined supreme court opinions using OpenAI's API platform. I built it to demonstrate my understanding of document chunking, embedding generation, PostgreSQL, cosine similarity, MS Entity Framework, and API development. 
