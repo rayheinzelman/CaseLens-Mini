@@ -1,0 +1,34 @@
+A. Supported Questions
+
+1.
+What standard did the Supreme Court establish in Terry v. Ohio for when a police officer may stop and frisk a person?
+
+2.
+How does Graham v. Connor determine whether a police officer used excessive force?
+
+3. 
+When may police search a vehicle after arresting one of its occupants under Arizona v.
+
+B. Cross-Document Question
+
+1. 
+How do Terry v. Ohio and Graham v. Connor use an objective reasonableness standard to evaluate police conduct?
+
+C. Unsupported Question
+
+1. 
+What elements must a plaintiff prove to succeed in a medical malpractice lawsuit?
+
+2.
+The police searched my car after arresting me. Was the search illegal, and should I file a lawsuit?
+
+3.
+Who will win the next World Cup? 
+
+Results:
+A1: Pass
+A2: Pass
+A3: Pass
+B1: Pass
+C1: Pass
+C2: Partial fail, citation grounding passes, correct statement of general rule, but does crosses the line into legal advice, which is not supported by the documents.

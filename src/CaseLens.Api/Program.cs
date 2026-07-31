@@ -1,5 +1,8 @@
 using CaseLens.Api.Data;
+using CaseLens.Api.Services.Answers;
+using CaseLens.Api.Services.Embeddings;
 using CaseLens.Api.Services.Ingestion;
+using CaseLens.Api.Services.Retrieval;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var connectionString =
-    builder.Configuration.GetConnectionString("CaseLensDatabase")
+    builder.Configuration.GetConnectionString("CaseLensMiniDatabase")
     ?? throw new InvalidOperationException(
         "Connection string 'CaseLensDatabase' was not found.");
 
@@ -30,6 +33,53 @@ builder.Services.AddScoped<
     IDocumentIngestionService,
     DocumentIngestionService>();
 
+builder.Services.Configure<OpenAiEmbeddingOptions>(
+    builder.Configuration.GetSection(
+        OpenAiEmbeddingOptions.SectionName));
+
+builder.Services.AddHttpClient<
+    IEmbeddingGenerator,
+    OpenAiEmbeddingGenerator>(httpClient =>
+    {
+        httpClient.BaseAddress =
+            new Uri("https://api.openai.com/v1/");
+    });
+
+builder.Services.AddScoped<
+    IChunkEmbeddingBackfillService,
+    ChunkEmbeddingBackfillService>();
+
+builder.Services.AddScoped<
+    IRetrievalCandidateStore,
+    EfRetrievalCandidateStore>();
+
+builder.Services.AddScoped<
+    IRetrievalService,
+    CosineSimilarityRetrievalService>();
+
+builder.Services.Configure<OpenAiAnswerOptions>(
+    builder.Configuration.GetSection(OpenAiAnswerOptions.SectionName));
+
+builder.Services.Configure<QuestionAnswerOptions>(
+    builder.Configuration.GetSection(QuestionAnswerOptions.SectionName));
+
+builder.Services.AddSingleton<IAnswerPromptBuilder, AnswerPromptBuilder>();
+
+builder.Services.AddHttpClient<
+    IAnswerGenerationService,
+    OpenAiAnswerGenerationService>(httpClient =>
+    {
+        httpClient.BaseAddress = new Uri("https://api.openai.com/v1/");
+    });
+
+builder.Services.AddScoped<
+    IQuestionAnswerService,
+    QuestionAnswerService>();
+
+builder.Services.AddScoped<
+    IRetrievalEvaluator,
+    RetrievalEvaluator>();
+
 var app = builder.Build();
 
 if (args.Contains("--ingest", StringComparer.OrdinalIgnoreCase))
@@ -44,8 +94,6 @@ if (args.Contains("--ingest", StringComparer.OrdinalIgnoreCase))
         AppContext.BaseDirectory,
         "Data",
         "Opinions");
-
-    Console.WriteLine("HEre: " + opinionsDirectory);
 
     var opinionSources = new[]
     {
@@ -62,7 +110,12 @@ if (args.Contains("--ingest", StringComparer.OrdinalIgnoreCase))
         new OpinionSource(
             Path.Combine(opinionsDirectory, "terryvohio.pdf"),
             "TERRY v. OHIO.",
-            "392 U.S. 1 (1968)")
+            "392 U.S. 1 (1968)"),
+
+        //new OpinionSource(
+        //    Path.Combine(opinionsDirectory, "mirandavarizona.pdf"),
+        //    "MIRANDA v. ARIZONA",
+        //    "384 U.S. 436 (1966)")
     };
 
     foreach (var source in opinionSources.OrderBy(
@@ -78,6 +131,45 @@ if (args.Contains("--ingest", StringComparer.OrdinalIgnoreCase))
             $"skipped={result.WasSkipped}");
     }
 
+    var embeddingBackfillService =
+        scope.ServiceProvider.GetRequiredService<
+            IChunkEmbeddingBackfillService>();
+
+    var embeddingResult =
+        await embeddingBackfillService.PopulateMissingAsync();
+
+    Console.WriteLine(
+        $"Embeddings: {embeddingResult.TotalChunkCount} chunks, " +
+        $"{embeddingResult.GeneratedEmbeddingCount} generated, " +
+        $"{embeddingResult.ExistingEmbeddingCount} already present, " +
+        $"{embeddingResult.Dimensions} dimensions.");
+
+    return;
+}
+
+if (args.Contains(
+        "--evaluate-retrieval",
+        StringComparer.OrdinalIgnoreCase))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+
+    var evaluator = scope.ServiceProvider
+        .GetRequiredService<IRetrievalEvaluator>();
+
+    var report = await evaluator.EvaluateAsync();
+
+    foreach (var result in report.Results)
+    {
+        Console.WriteLine(
+            $"[{(result.Passed ? "PASS" : "FAIL")}] " +
+            $"{result.Question}");
+        Console.WriteLine(
+            $"  Expected: {result.ExpectedCitation}");
+        Console.WriteLine(
+            $"  Retrieved: {string.Join(", ", result.RetrievedCitations)}");
+    }
+
+    Environment.ExitCode = report.Passed ? 0 : 1;
     return;
 }
 
